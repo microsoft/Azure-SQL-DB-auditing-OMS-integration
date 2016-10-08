@@ -5,6 +5,11 @@
   "contentVersion": "1.0.0.0",
 
   "parameters": {
+    "siteName": {
+
+      "type": "string"
+
+    },
 
     "SQL Auditing - Storage Connection String": {
 
@@ -40,25 +45,25 @@
 
       }
 
-    }
+    },
+    "repoUrl": {
 
+      "type": "string"
+
+    },
+
+    "branch": {
+
+      "type": "string"
+
+    }
   },
 
   "variables": {
 
-    "repoUrl": "https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration",
-
-    "branch": "master",
-
-    "sku": "Free",
-
-    "workerSize": "0",
-
     "siteLocation": "[resourcegroup().location]",
 
     "hostingPlanName": "SQLAuditLogsToOMSPlan",
-
-    "siteName": "[concat('SQLAuditLogsToOMSService', uniqueString(subscription().subscriptionId))]",
 
     "jobCollectionName": "SQLAuditLogsToOMSJob",
 
@@ -71,23 +76,26 @@
 
     {
 
-      "apiVersion": "2014-11-01",
+      "apiVersion": "2015-08-01",
 
       "name": "[variables('hostingPlanName')]",
 
       "type": "Microsoft.Web/serverfarms",
 
       "location": "[variables('siteLocation')]",
+      "sku": {
+        "name": "F1",
+        "tier": "Free",
+        "size": "F1",
+        "family": "F",
+        "capacity": 0
+      },
 
       "properties": {
 
         "name": "[variables('hostingPlanName')]",
 
-        "sku": "[variables('sku')]",
-
-        "workerSize": "[variables('workerSize')]",
-
-        "numberOfWorkers": 1
+        "numberOfWorkers": 0
 
       }
 
@@ -95,9 +103,9 @@
 
     {
 
-      "apiVersion": "2014-11-01",
+      "apiVersion": "2015-08-01",
 
-      "name": "[variables('siteName')]",
+      "name": "[parameters('siteName')]",
 
       "type": "Microsoft.Web/sites",
 
@@ -111,7 +119,7 @@
 
       "properties": {
 
-        "serverFarm": "[variables('hostingPlanName')]"
+        "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
 
       },
 
@@ -119,7 +127,7 @@
 
         {
 
-          "apiVersion": "2014-04-01",
+          "apiVersion": "2015-08-01",
 
           "name": "web",
 
@@ -127,15 +135,15 @@
 
           "dependsOn": [
 
-            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
 
           ],
 
           "properties": {
 
-            "RepoUrl": "[variables('repoUrl')]",
+            "RepoUrl": "[parameters('repoUrl')]",
 
-            "branch": "[variables('branch')]",
+            "branch": "[parameters('branch')]",
 
             "IsManualIntegration": true
 
@@ -153,7 +161,8 @@
 
           "dependsOn": [
 
-            "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+            "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
+            "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]"
 
           ],
 
@@ -177,7 +186,7 @@
 
     {
 
-      "apiVersion": "2014-08-01-preview",
+      "apiVersion": "2016-03-01",
 
       "name": "[variables('jobCollectionName')]",
 
@@ -185,7 +194,8 @@
 
       "dependsOn": [
 
-        "[resourceId('Microsoft.Web/Sites', variables('siteName'))]"
+        "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
+        "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]"
 
       ],
 
@@ -219,7 +229,7 @@
 
         {
 
-          "apiVersion": "2014-08-01-preview",
+          "apiVersion": "2016-03-01",
 
           "name": "SQLAuditLogsToOMSJob",
 
@@ -227,11 +237,13 @@
 
           "dependsOn": [
 
-            "[resourceId('Microsoft.Web/sites/config', variables('siteName'), 'appsettings')]",
+            "[resourceId('Microsoft.Web/sites/config', parameters('siteName'), 'appsettings')]",
+            "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]",
 
             "[resourceId('Microsoft.Scheduler/jobCollections', variables('jobCollectionName'))]"
 
           ],
+          "location": "[variables('siteLocation')]",
 
           "properties": {
 
@@ -239,7 +251,7 @@
 
               "request": {
 
-                "uri": "[concat(list(resourceId('Microsoft.Web/sites/config', variables('siteName'), 'publishingcredentials'), '2014-06-01').properties.scmUri, '/api/triggeredjobs/SQLAuditLogsToOMSJob/run')]",
+                "uri": "[concat(list(resourceId('Microsoft.Web/sites/config', parameters('siteName'), 'publishingcredentials'), '2014-06-01').properties.scmUri, '/api/triggeredjobs/SQLAuditLogsToOMSJob/run')]",
 
                 "method": "POST"
 
