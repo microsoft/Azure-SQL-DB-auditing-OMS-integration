@@ -1,0 +1,412 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "resourcegroup": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspace": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "workspaceapiversion": {
+            "type": "string",
+            "defaultValue": ""
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "[parameters('workspaceapiversion')]",
+            "name": "[parameters('workspace')]",
+            "type": "Microsoft.OperationalInsights/workspaces",
+            "location": "[parameters('location')]",
+            "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]",
+            "resources": [
+                {
+                    "apiVersion": "2015-11-01-preview",
+                    "name": "c4dac598-d6a8-4cd5-bebc-8648ae3af723",
+                    "type": "views",
+                    "location": "[parameters('location')]",
+                    "id": "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'),'/views/c4dac598-d6a8-4cd5-bebc-8648ae3af723')]",
+                    "dependson": [
+                        "[Concat('/subscriptions/', parameters('subscriptionId'), '/resourceGroups/', parameters('resourcegroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('workspace'))]"
+                    ],
+                    "properties": {
+                        "Id": "c4dac598-d6a8-4cd5-bebc-8648ae3af723",
+                        "Name": "SQL Database Audit",
+                        "Author": "ronmat@microsoft.com",
+                        "Source": "Local",
+                        "Dashboard": [
+                            {
+                                "Id": "InformationBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "Title": "Azure SQL Database",
+                                        "NewGroup": false,
+                                        "Color": "#0072c6"
+                                    },
+                                    "Header": {
+                                        "Image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAztJREFUeNrUmktoE1EUhqexKj4zJWoaqIpVaVGxKr6ogsaNbhS0YKkKFeKmriwFEaXYnY+FYjeCbmtRRBeuXIlLMe1CXGlduBOt0rS1FaF2/A+ciWMy0yT3njvN/PBtMuHc8899zJ1zp8ZxHEtAKXAE7AdNYBOwGVKO+QQ+gDfgFfii23CNhoHV4CyzWzHGEBgEA2BUKQIZqJAG0A+mHTn9AvfB2krzqeTPi8AVMOWYE92UPrBY2kAzeOeEp/fcZsncYmWMsjaQBdut8LSN22zTnQMXwYwzf5rhHJSGUJdTPeoKyjNoGT0JnoIFCt1/GXwOuNYIbirE/APawbNyhlATmNS4W4fm6NW0Rlxa/baWmsQLwROwXGMC2orXSmkpeMw55lVooAe0aK4gcUMG3NWpJ8hAA+gVWAJtRXPlqpdzLTJwlbvJpAFbID7leK3QwCpwXughFDdsgNTJOecN0A9LhIKbHkIW59rpNdAhuA2wQ+gB0hnXQBLsiqCBnaCeDKTpxUYwcDwkA5TzYTLQKryTDGMOuDoQ44eDFcEhRNpCBtYJB42HaGC9O4klVRuwl1opPNdIa2KaG7dK7nSdgXZWxCwzskOYwPmtxISBuPEQxj9pnAx8NRC4LiQDo2RgJMI98DHGtUpppbgXvNSbMEAv9af5NTKKaicDtK/+ZmCNNi0qpyRpCH3nKnHUNOROYtIj4eDTXP9JMzfAlHAbg966UEKwXE71m70+NSH67bdgFTvhrQv9AA+E7sw98Nbnd/rtjlAbDznn/ypzKc2KnKuDc1TmWgXiT3KuRZU5Oq+6LrQ6BGlWIH6f5TlbK9zM9YNhzQaOKV4rR8M8RD23q7ibG0FOo4snwA6fuC18TVWU08Zyy+snwHNLrbxu8ZJ5F7zkIXUUdNP+XTEelddPgRfFAzZ4wmXAbBUcblAOF1QP+TJVcMSU0T2lPA7G5iH5HLctcsy6AWRDTD7LbYoedNeCS2DcYOK0SnVzW+In9S5JcEtzSfRL/DbHrigfnY896C2LPvQ4B/b4PBRLiZ7KdJg9wLvhMaUCqdDnNgkqtIJ9oBlspqITWMYvSj/5pWnE+ve5zev8hkxDfwUYAP0NkvYTPlJVAAAAAElFTkSuQmCC",
+                                        "Label": "Database Auditing",
+                                        "Link": {
+                                            "Label": "More info",
+                                            "Url": "https://azure.microsoft.com/en-us/documentation/articles/sql-database-auditing-get-started/"
+                                        }
+                                    },
+                                    "List": [
+                                        {
+                                            "Title": "Gain insight into database events!",
+                                            "Content": "\n1. Configurable audit policy via the Azure portal &  API\n2. Audit logs reside in your Azure Storage account\n\n\nHelp to meet **security standards** recommended by regulating authorities,such as \n**PCI-DSS, SOX, HIPAA**.\n\n\n\n#### Learn more about [Azure SQL Database Auditing ](https://azure.microsoft.com/en-us/documentation/articles/sql-database-auditing-get-started/)\n\n\n\n\n\n\n\n![MS Logo](https://assets.onestore.ms/cdnfiles/onestorerolling-1607-15000/shell/v3/images/logo/microsoft.png \"Microsoft\")"
+                                        }
+                                    ]
+                                }
+                            },
+                            {
+                                "Id": "TwoTrendsAndListBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Audit distribution",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Trend1": {
+                                        "Legend": "All Data",
+                                        "LegendColor": "#00188f",
+                                        "ChartQuery": "Type = SQLAuditLog_CL AND NOT named AND NOT audit  | measure count() by ActionName_s  interval 1hour ",
+                                        "Calculation": {
+                                            "Operation": "Sum"
+                                        }
+                                    },
+                                    "Trend2": {
+                                        "Legend": "",
+                                        "LegendColor": "#0072c6",
+                                        "ChartQuery": "",
+                                        "Calculation": {
+                                            "Operation": "Sum"
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit   |  measure count() by ActionName_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "ActionName",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": "60",
+                                                    "color": "#fcd116",
+                                                    "isDefault": false
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": "90",
+                                                    "color": "#ba141a",
+                                                    "isDefault": false
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "SingleQueryDonutBuilderBladeV1",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Distribution by Database",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "Databases",
+                                        "Subtitle": ""
+                                    },
+                                    "Donut": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit   |  measure count() by DatabaseName_s",
+                                        "CenterLegend": {
+                                            "Text": "Total",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
+                                        },
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit   |  measure count() by DatabaseName_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Database",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": 60,
+                                                    "color": "#fcd116"
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": 90,
+                                                    "color": "#ba141a"
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "NumberTileListBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Distribution by IP",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Tile": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit | measure count() by ClientIp_s",
+                                        "Legend": "IP Address"
+                                    },
+                                    "List": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit | measure count() by ClientIp_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "IP Adress",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": 60,
+                                                    "color": "#fcd116"
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": 90,
+                                                    "color": "#ba141a"
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "NumberTileListBuilderBlade",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Distribution by Principal",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Tile": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit | measure count() by ServerPrincipalName_s",
+                                        "Legend": "SQL Principlals "
+                                    },
+                                    "List": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit | measure count() by ServerPrincipalName_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Principal",
+                                            "Value": "Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": 60,
+                                                    "color": "#fcd116"
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": 90,
+                                                    "color": "#ba141a"
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            },
+                            {
+                                "Id": "SingleQueryDonutBuilderBladeV1",
+                                "Type": "Blade",
+                                "Version": 0,
+                                "Configuration": {
+                                    "General": {
+                                        "title": "Distribution by Success",
+                                        "newGroup": false,
+                                        "icon": "",
+                                        "useIcon": false
+                                    },
+                                    "Header": {
+                                        "Title": "--",
+                                        "Subtitle": ""
+                                    },
+                                    "Donut": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit   |  measure count() by Succeeded_b",
+                                        "CenterLegend": {
+                                            "Text": "Total",
+                                            "Operation": "Sum",
+                                            "ArcsToSelect": []
+                                        },
+                                        "Options": {
+                                            "colors": [
+                                                "#00188f",
+                                                "#0072c6",
+                                                "#00bcf2"
+                                            ],
+                                            "valueColorMapping": []
+                                        }
+                                    },
+                                    "List": {
+                                        "Query": "Type = SQLAuditLog_CL AND NOT named AND NOT audit AND Succeeded_b=false | measure count() by ServerPrincipalName_s",
+                                        "HideGraph": false,
+                                        "enableSparklines": false,
+                                        "operation": "Summary",
+                                        "ColumnsTitle": {
+                                            "Name": "Principal",
+                                            "Value": "Falied Count"
+                                        },
+                                        "Color": "#0072c6",
+                                        "thresholds": {
+                                            "isEnabled": false,
+                                            "values": [
+                                                {
+                                                    "name": "Normal",
+                                                    "threshold": "Default",
+                                                    "color": "#009e49",
+                                                    "isDefault": true
+                                                },
+                                                {
+                                                    "name": "Warning",
+                                                    "threshold": 60,
+                                                    "color": "#fcd116"
+                                                },
+                                                {
+                                                    "name": "Error",
+                                                    "threshold": 90,
+                                                    "color": "#ba141a"
+                                                }
+                                            ]
+                                        },
+                                        "NameDSVSeparator": "",
+                                        "NavigationQuery": "{selected item}"
+                                    }
+                                }
+                            }
+                        ],
+                        "OverviewTile": {
+                            "Id": "TwoTrendsBuilderTile",
+                            "Type": "OverviewTile",
+                            "Version": 0,
+                            "Configuration": {
+                                "Trend1": {
+                                    "Legend": "All Records",
+                                    "LegendColor": "#00188f",
+                                    "ChartQuery": "Type = SQLAuditLog_CL AND NOT named AND NOT audit",
+                                    "Calculation": {
+                                        "Operation": "Sum"
+                                    }
+                                },
+                                "Trend2": {
+                                    "Legend": "",
+                                    "LegendColor": "#0072c6",
+                                    "ChartQuery": "",
+                                    "Calculation": {
+                                        "Operation": "Sum"
+                                    }
+                                },
+                                "Advanced": {
+                                    "DataFlowVerification": {
+                                        "Enabled": false,
+                                        "Query": "*",
+                                        "Message": ""
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    ]
+}
