@@ -39,7 +39,7 @@ namespace XEL2OMS
                     }
                     catch (Exception ex)
                     {
-                        s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Error: {0}. Could not send event number: {1}, from blob: {2}", ex.Message, count, blobName);
+                        s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Error: Could not send event number: {0}, from blob: {1}", count, blobName, ex);
                     }
                 }
 
@@ -48,8 +48,20 @@ namespace XEL2OMS
             return list;
         }
 
+        public static IEnumerable<List<T>> Chunk<T>(this List<T> source, int chunkSize)
+        {
+            int offset = 0;
+            while (offset < source.Count)
+            {
+                yield return source.GetRange(offset, Math.Min(source.Count - offset, chunkSize));
+                offset += chunkSize;
+            }
+        }
+
         private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
         {
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}", blob.Uri);
+
             string fileName = Path.Combine(Environment.GetEnvironmentVariable("WEBROOT_PATH"), Path.GetRandomFileName() + ".xel");
             try
             {
@@ -58,9 +70,10 @@ namespace XEL2OMS
                 using (var events = new QueryableXEventData(fileName))
                 {
                     List<SQLAuditLog> list = ParseXEL(events, eventNumber, blob.Name);
-                    if (list.Count > 0)
+                    IEnumerable<List<SQLAuditLog>> chunkedList = list.Chunk(10000);
+                    foreach (List<SQLAuditLog> chunk in chunkedList)
                     {
-                        var jsonList = JsonConvert.SerializeObject(list);
+                        var jsonList = JsonConvert.SerializeObject(chunk);
                         await oms.SendOMSApiIngestionFile(jsonList);
                         eventNumber += list.Count;
                         totalLogs += list.Count;
@@ -104,7 +117,6 @@ namespace XEL2OMS
                 foreach (var blob in pageBlobs)
                 {
                     string blobName = new FileInfo(blob.Name).Name;
-                    s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}{1}", dateFolder.Uri, blobName);
 
                     if (datesCompareResult == 0)
                     {

@@ -68,6 +68,8 @@ namespace XEL2OMS
             request.Headers.Add("x-ms-date", date);
             request.Headers.Add("time-generated-field", "EventTime");
 
+            m_Tracer.TraceEvent(TraceEventType.Information, 0, "Sending chunk ({0} bytes) to: {1}", payload.Length, uriAddress);
+
             // send request over the network
             using (Stream dataStream = await m_Retry.ExecuteAsync(() => request.GetRequestStreamAsync()))
             {
