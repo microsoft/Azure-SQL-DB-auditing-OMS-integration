@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/src/XEL2OMS/.vs/XEL2OMS/v14
+/src/XEL2OMS/bin/Debug
+/src/XEL2OMS/obj/Debug
+/src/XEL2OMS/packages
+/src/XEL2OMS/node_modules
+/src/XEL2OMS/.vs/config
+/src/XEL2OMS/bin
+/src/XEL2OMS/obj
+/src/XEL2OMS/XEL2OMS.csproj.user
