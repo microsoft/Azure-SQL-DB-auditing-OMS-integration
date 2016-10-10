@@ -1,6 +1,6 @@
 #Azure SQL DB Auditing log integration into OMS
 
-This is sample application that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
+This is **sample application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
 
 It allows using OMS Log Analytics to explore and analyze your database activity, and gain insight into discrepancies and anomalies that could indicate potential business concerns or suspected security violations.  
 
@@ -94,3 +94,5 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 
 [101]: https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration/blob/master/SQLDatabaseAudit.omsview
+
+
