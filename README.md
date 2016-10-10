@@ -28,7 +28,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 1. Launch the [Azure Portal](https://portal.azure.com) at https://portal.azure.com.
 
-2. Navigate to the **Access keys** blade of the storage account. Then click on the **Context Menu** ("...") to the right of key1, and click on **View connection string**. Copy & Save the Connection String for use in following stages.
+2. Navigate to the **Access keys** blade of the storage account. Then click on the **Context Menu** ("...") to the right of key1, and click on **View connection string**. Copy & Save the Connection String for use in following steps.
 
 	![Navigation Pane][1]
 
@@ -43,7 +43,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 	![Navigation Pane][2]
 
-4. Click on **Connected Sources**, then click on **Windows Servers**. Copy & Save the **Workspace ID** and **Primary Key** for use in following stages.
+4. Click on **Connected Sources**, then click on **Windows Servers**. Copy & Save the **Workspace ID** and **Primary Key** for use in following steps.
 
 	![Navigation Pane][3]
 
