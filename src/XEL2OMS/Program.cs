@@ -48,6 +48,11 @@ namespace XEL2OMS
             return list;
         }
 
+        private static string GetLocalStorageFolder()
+        {
+            return Environment.GetEnvironmentVariable("WEBROOT_PATH") ?? "";
+        }
+
         public static IEnumerable<List<T>> Chunk<T>(this List<T> source, int chunkSize)
         {
             int offset = 0;
@@ -62,27 +67,34 @@ namespace XEL2OMS
         {
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}", blob.Uri);
 
-            string fileName = Path.Combine(Environment.GetEnvironmentVariable("WEBROOT_PATH"), Path.GetRandomFileName() + ".xel");
+            string fileName = Path.Combine(GetLocalStorageFolder(), Path.GetRandomFileName() + ".xel");
             try
             {
                 await blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate);
-
+                List<SQLAuditLog> list;
                 using (var events = new QueryableXEventData(fileName))
                 {
-                    List<SQLAuditLog> list = ParseXEL(events, eventNumber, blob.Name);
-                    IEnumerable<List<SQLAuditLog>> chunkedList = list.Chunk(10000);
-                    foreach (List<SQLAuditLog> chunk in chunkedList)
-                    {
-                        var jsonList = JsonConvert.SerializeObject(chunk);
-                        await oms.SendOMSApiIngestionFile(jsonList);
-                        eventNumber += list.Count;
-                        totalLogs += list.Count;
-                    }
+                    list = ParseXEL(events, eventNumber, blob.Name);
+                }
+                IEnumerable<List<SQLAuditLog>> chunkedList = list.Chunk(10000);
+                foreach (List<SQLAuditLog> chunk in chunkedList)
+                {
+                    var jsonList = JsonConvert.SerializeObject(chunk);
+                    await oms.SendOMSApiIngestionFile(jsonList);
+                    eventNumber += list.Count;
+                    totalLogs += list.Count;
                 }
             }
             finally
             {
-                File.Delete(fileName);
+                try
+                {
+                    File.Delete(fileName);
+                }
+                catch (Exception e)
+                {
+                    s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Was not able to delete file: {0}. Reason: {1}", fileName, e.Message);
+                }
             }
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing: {0}", blob.Uri);
             return eventNumber;
@@ -222,7 +234,7 @@ namespace XEL2OMS
                 CloudBlobClient BlobClient = storageAccount.CreateCloudBlobClient();
                 CloudBlobContainer container = BlobClient.GetContainerReference(containerName);
 
-                var stateFileName = Path.Combine(Environment.GetEnvironmentVariable("WEBROOT_PATH"), "states.json");
+                var stateFileName = Path.Combine(GetLocalStorageFolder(), "states.json");
 
                 StateDictionary statesList = GetStates(stateFileName);
 
