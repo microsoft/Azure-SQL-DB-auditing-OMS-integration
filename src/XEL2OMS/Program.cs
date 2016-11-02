@@ -85,6 +85,11 @@ namespace XEL2OMS
                     totalLogs += list.Count;
                 }
             }
+            catch (Exception e)
+            {
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing: {0}. Reason: {1}", blob.Uri, e);
+                throw;
+            }
             finally
             {
                 try
