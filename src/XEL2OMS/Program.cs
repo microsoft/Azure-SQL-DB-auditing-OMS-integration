@@ -236,8 +236,8 @@ namespace XEL2OMS
             }
             try
             {
-                CloudBlobClient BlobClient = storageAccount.CreateCloudBlobClient();
-                CloudBlobContainer container = BlobClient.GetContainerReference(containerName);
+                CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
+                CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
                 var stateFileName = Path.Combine(GetLocalStorageFolder(), "states.json");
 
