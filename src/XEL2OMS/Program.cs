@@ -5,11 +5,12 @@ using Microsoft.WindowsAzure.Storage.Blob;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
 
 namespace XEL2OMS
 {
@@ -63,6 +64,22 @@ namespace XEL2OMS
             }
         }
 
+        private static void PrintHeaders(RequestEventArgs e)
+        {
+            if (e.RequestInformation.HttpStatusCode != (int)HttpStatusCode.OK)
+            {
+                e.Request.Headers.Remove("Authorization");
+                if (e.Response != null)
+                {
+                    s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Dumpping headers: Failed processing: {0}. Reason: {1} \nHTTP Request:\n{2}HTTP Response:\n{3}", e.Request.Address, e.RequestInformation.Exception, e.Request.Headers, e.Response.Headers);
+                }
+                else
+                {
+                    s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Dumpping headers: Failed processing: {0}. Reason: {1} \nHTTP Request:\n{2}", e.Request.Address, e.RequestInformation.Exception, e.Request.Headers);
+                }
+            }
+        }
+
         private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
         {
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}", blob.Uri);
@@ -70,7 +87,9 @@ namespace XEL2OMS
             string fileName = Path.Combine(GetLocalStorageFolder(), Path.GetRandomFileName() + ".xel");
             try
             {
-                await blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate);
+                OperationContext operationContext = new OperationContext();
+                operationContext.RequestCompleted += (sender, e) => PrintHeaders(e);
+                await blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext);
                 List<SQLAuditLog> list;
                 using (var events = new QueryableXEventData(fileName))
                 {
