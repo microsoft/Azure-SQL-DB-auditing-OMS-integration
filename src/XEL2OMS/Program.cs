@@ -95,10 +95,7 @@ namespace XEL2OMS
             {
                 OperationContext operationContext = new OperationContext();
                 operationContext.RequestCompleted += (sender, e) => PrintHeaders(e);
-                await
-                    retryPolicy.ExecuteAsync(
-                        (() =>
-                            blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
+                await retryPolicy.ExecuteAsync((() =>blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
                 List<SQLAuditLog> list;
                 using (var events = new QueryableXEventData(fileName))
                 {
