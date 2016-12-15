@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
 
 namespace XEL2OMS
 {
@@ -82,6 +83,8 @@ namespace XEL2OMS
 
         private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
         {
+            RetryPolicy retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, 3);
+
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}", blob.Uri);
 
             string fileName = Path.Combine(GetLocalStorageFolder(), Path.GetRandomFileName() + ".xel");
@@ -89,7 +92,10 @@ namespace XEL2OMS
             {
                 OperationContext operationContext = new OperationContext();
                 operationContext.RequestCompleted += (sender, e) => PrintHeaders(e);
-                await blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext);
+                await
+                    retryPolicy.ExecuteAsync(
+                        (() =>
+                            blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
                 List<SQLAuditLog> list;
                 using (var events = new QueryableXEventData(fileName))
                 {
@@ -124,7 +130,7 @@ namespace XEL2OMS
             return eventNumber;
         }
 
-        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState, OMSIngestionApi oms)
+        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState, OMSIngestionApi oms, string stateFileName, StateDictionary statesList)
         {
             int nextEvent = 0;
             int eventNumber = 0;
@@ -135,77 +141,85 @@ namespace XEL2OMS
 
             IEnumerable<CloudBlobDirectory> dateFolders = GetSubDirectories(subfolderName, subfolder, databaseState);
             var subfolderState = databaseState[subfolderName];
-            foreach (var dateFolder in dateFolders)
+            try
             {
-                currentDate = new DirectoryInfo(dateFolder.Prefix).Name;
-                datesCompareResult = string.Compare(currentDate, subfolderState.Date, StringComparison.OrdinalIgnoreCase);
-                //current folder is older than last state
-                if (datesCompareResult < 0)
+                foreach (var dateFolder in dateFolders)
                 {
-                    continue;
-                }
-
-                var tasks = new List<Task<int>>();
-
-                IEnumerable<CloudPageBlob> pageBlobs = dateFolder.ListBlobs(useFlatBlobListing: true).OfType<CloudPageBlob>()
-                    .Where(b => b.Name.EndsWith(".xel", StringComparison.OrdinalIgnoreCase));
-
-                foreach (var blob in pageBlobs)
-                {
-                    string blobName = new FileInfo(blob.Name).Name;
-
-                    if (datesCompareResult == 0)
+                    currentDate = new DirectoryInfo(dateFolder.Prefix).Name;
+                    datesCompareResult = string.Compare(currentDate, subfolderState.Date, StringComparison.OrdinalIgnoreCase);
+                    //current folder is older than last state
+                    if (datesCompareResult < 0)
                     {
-                        int blobsCompareResult = string.Compare(blobName, subfolderState.BlobName, StringComparison.OrdinalIgnoreCase);
-                        //blob is older than last state
-                        if (blobsCompareResult < 0)
-                        {
-                            continue;
-                        }
-
-                        if (blobsCompareResult == 0)
-                        {
-                            eventNumber = subfolderState.EventNumber;
-                        }
+                        continue;
                     }
 
-                    tasks.Add(SendBlobToOMS(blob, eventNumber, oms));
+                    var tasks = new List<Task<int>>();
 
-                    lastBlob = blobName;
-                    eventNumber = 0;
+                    IEnumerable<CloudPageBlob> pageBlobs = dateFolder.ListBlobs(useFlatBlobListing: true).OfType<CloudPageBlob>()
+                        .Where(b => b.Name.EndsWith(".xel", StringComparison.OrdinalIgnoreCase));
+
+                    foreach (var blob in pageBlobs)
+                    {
+                        string blobName = new FileInfo(blob.Name).Name;
+
+                        if (datesCompareResult == 0)
+                        {
+                            int blobsCompareResult = string.Compare(blobName, subfolderState.BlobName, StringComparison.OrdinalIgnoreCase);
+                            //blob is older than last state
+                            if (blobsCompareResult < 0)
+                            {
+                                continue;
+                            }
+
+                            if (blobsCompareResult == 0)
+                            {
+                                eventNumber = subfolderState.EventNumber;
+                            }
+                        }
+
+                        tasks.Add(SendBlobToOMS(blob, eventNumber, oms));
+
+                        lastBlob = blobName;
+                        eventNumber = 0;
+                    }
+
+                    Task.WaitAll(tasks.ToArray());
+                    nextEvent = tasks.Last().Result;
+                    subfolderState.BlobName = lastBlob;
+                    if (datesCompareResult >= 0)
+                    {
+                        subfolderState.Date = currentDate;
+                    }
+
+                    subfolderState.EventNumber = nextEvent;
+                    File.WriteAllText(stateFileName, JsonConvert.SerializeObject(statesList));
                 }
-
-                Task.WaitAll(tasks.ToArray());
-                nextEvent = tasks.Last().Result;
             }
-            subfolderState.BlobName = lastBlob;
-            if (datesCompareResult >= 0)
+            catch (Exception e)
             {
-                subfolderState.Date = currentDate;
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder {0}.", subfolder.Prefix);
             }
-
-            subfolderState.EventNumber = nextEvent;
         }
 
-        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms)
+        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms, string stateFileName, StateDictionary statesList)
         {
             string databaseName = new DirectoryInfo(databaseDirectory.Prefix).Name;
             IEnumerable<CloudBlobDirectory> subfolders = GetSubDirectories(databaseName, databaseDirectory, serverState);
 
             foreach (var subfolder in subfolders)
             {
-                SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
+                SendLogsFromSubfolder(subfolder, serverState[databaseName], oms, stateFileName, statesList);
             }
         }
 
-        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, StateDictionary statesList, OMSIngestionApi oms)
+        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, StateDictionary statesList, OMSIngestionApi oms, string stateFileName)
         {
             string serverName = new DirectoryInfo(serverDirectory.Prefix).Name;
             IEnumerable<CloudBlobDirectory> databases = GetSubDirectories(serverName, serverDirectory, statesList);
 
             foreach (var database in databases)
             {
-                SendLogsFromDatabase(database, statesList[serverName], oms);
+                SendLogsFromDatabase(database, statesList[serverName], oms, stateFileName, statesList);
             }
         }
 
@@ -267,7 +281,7 @@ namespace XEL2OMS
                 IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>();
                 foreach (var server in servers)
                 {
-                    SendLogsFromServer(server, statesList, oms);
+                    SendLogsFromServer(server, statesList, oms, stateFileName);
                 }
 
                 File.WriteAllText(stateFileName, JsonConvert.SerializeObject(statesList));
