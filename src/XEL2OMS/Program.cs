@@ -24,6 +24,9 @@ namespace XEL2OMS
     {
         private static TraceSource s_consoleTracer = new TraceSource("OMS");
         private static int totalLogs = 0;
+        private const int DefaultRetryCount = 3;
+        private static readonly string StateFileName = Path.Combine(GetLocalStorageFolder(), "states.json");
+        private static readonly StateDictionary StatesList = GetStates(StateFileName);
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Should catch any exception")]
         private static List<SQLAuditLog> ParseXEL(QueryableXEventData events, int eventNumber, string blobName)
@@ -83,9 +86,9 @@ namespace XEL2OMS
 
         private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
         {
-            RetryPolicy retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, 3);
+            RetryPolicy retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, DefaultRetryCount);
 
-            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "processing: {0}", blob.Uri);
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing: {0}", blob.Uri);
 
             string fileName = Path.Combine(GetLocalStorageFolder(), Path.GetRandomFileName() + ".xel");
             try
@@ -139,6 +142,7 @@ namespace XEL2OMS
             string currentDate = null;
             string subfolderName = new DirectoryInfo(subfolder.Prefix).Name;
 
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder {0}.", subfolder.Prefix);
             IEnumerable<CloudBlobDirectory> dateFolders = GetSubDirectories(subfolderName, subfolder, databaseState);
             var subfolderState = databaseState[subfolderName];
             try
@@ -193,6 +197,7 @@ namespace XEL2OMS
 
                     subfolderState.EventNumber = nextEvent;
                     File.WriteAllText(stateFileName, JsonConvert.SerializeObject(statesList));
+                    s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder {0}.", subfolder.Prefix);
                 }
             }
             catch (Exception e)
@@ -272,19 +277,15 @@ namespace XEL2OMS
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
-                var stateFileName = Path.Combine(GetLocalStorageFolder(), "states.json");
-
-                StateDictionary statesList = GetStates(stateFileName);
-
                 s_consoleTracer.TraceInformation("Sending logs to OMS");
 
                 IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>();
                 foreach (var server in servers)
                 {
-                    SendLogsFromServer(server, statesList, oms, stateFileName);
+                    SendLogsFromServer(server, StatesList, oms, StateFileName);
                 }
 
-                File.WriteAllText(stateFileName, JsonConvert.SerializeObject(statesList));
+                File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
                 s_consoleTracer.TraceInformation("{0} logs were successfully sent", totalLogs);
             }
             catch (Exception ex)

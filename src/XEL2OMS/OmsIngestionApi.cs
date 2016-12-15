@@ -78,7 +78,7 @@ namespace XEL2OMS
 
             RestResponse response = await m_Retry.ExecuteAsync(() => GetResponse(request, stopwatch, payload.Length));
 
-            if (response.StatusCode != HttpStatusCode.Accepted)
+            if (!(response.StatusCode >= HttpStatusCode.OK && response.StatusCode < HttpStatusCode.Ambiguous))
             {
                 m_Tracer.TraceEvent(TraceEventType.Error, 0, "{0} to {1} failed with error {2}", method, address, response.StatusDescription);
                 throw new HttpException((int)response.StatusCode, string.Format("{0} to {1} failed", method, address));
