@@ -130,7 +130,7 @@ namespace XEL2OMS
             return eventNumber;
         }
 
-        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState, OMSIngestionApi oms, string stateFileName, StateDictionary statesList)
+        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState, OMSIngestionApi oms)
         {
             int nextEvent = 0;
             int eventNumber = 0;
@@ -193,7 +193,7 @@ namespace XEL2OMS
                     }
 
                     subfolderState.EventNumber = nextEvent;
-                    File.WriteAllText(stateFileName, JsonConvert.SerializeObject(statesList));
+                    File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
                     s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder {0}.", subfolder.Prefix);
                 }
             }
@@ -203,25 +203,25 @@ namespace XEL2OMS
             }
         }
 
-        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms, string stateFileName, StateDictionary statesList)
+        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms)
         {
             string databaseName = new DirectoryInfo(databaseDirectory.Prefix).Name;
             IEnumerable<CloudBlobDirectory> subfolders = GetSubDirectories(databaseName, databaseDirectory, serverState);
 
             foreach (var subfolder in subfolders)
             {
-                SendLogsFromSubfolder(subfolder, serverState[databaseName], oms, stateFileName, statesList);
+                SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
             }
         }
 
-        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, StateDictionary statesList, OMSIngestionApi oms, string stateFileName)
+        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, OMSIngestionApi oms)
         {
             string serverName = new DirectoryInfo(serverDirectory.Prefix).Name;
-            IEnumerable<CloudBlobDirectory> databases = GetSubDirectories(serverName, serverDirectory, statesList);
+            IEnumerable<CloudBlobDirectory> databases = GetSubDirectories(serverName, serverDirectory, StatesList);
 
             foreach (var database in databases)
             {
-                SendLogsFromDatabase(database, statesList[serverName], oms, stateFileName, statesList);
+                SendLogsFromDatabase(database, StatesList[serverName], oms);
             }
         }
 
@@ -279,7 +279,7 @@ namespace XEL2OMS
                 IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>();
                 foreach (var server in servers)
                 {
-                    SendLogsFromServer(server, StatesList, oms, StateFileName);
+                    SendLogsFromServer(server, oms);
                 }
 
                 File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
