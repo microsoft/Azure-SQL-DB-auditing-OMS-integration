@@ -95,7 +95,7 @@ namespace XEL2OMS
             {
                 OperationContext operationContext = new OperationContext();
                 operationContext.RequestCompleted += (sender, e) => PrintHeaders(e);
-                await retryPolicy.ExecuteAsync((() =>blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
+                await retryPolicy.ExecuteAsync((() => blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
                 List<SQLAuditLog> list;
                 using (var events = new QueryableXEventData(fileName))
                 {
@@ -139,7 +139,7 @@ namespace XEL2OMS
             string currentDate = null;
             string subfolderName = new DirectoryInfo(subfolder.Prefix).Name;
 
-            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder {0}.", subfolder.Prefix);
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder {0}", subfolder.Prefix);
             IEnumerable<CloudBlobDirectory> dateFolders = GetSubDirectories(subfolderName, subfolder, databaseState);
             var subfolderState = databaseState[subfolderName];
             try
@@ -194,12 +194,12 @@ namespace XEL2OMS
 
                     subfolderState.EventNumber = nextEvent;
                     File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
-                    s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder {0}.", subfolder.Prefix);
                 }
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder {0}", subfolder.Prefix);
             }
             catch (Exception e)
             {
-                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder {0}.", subfolder.Prefix);
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder {0}", subfolder.Prefix);
             }
         }
 
