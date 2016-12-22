@@ -1,4 +1,4 @@
-﻿{
+{
 
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
 
@@ -10,6 +10,12 @@
       "type": "string"
 
     },
+	
+	"siteLocation": {
+	
+	  "type": "string"
+	  
+	},
 
     "SQL Auditing - Storage Connection String": {
 
@@ -61,8 +67,6 @@
 
   "variables": {
 
-    "siteLocation": "[resourcegroup().location]",
-
     "hostingPlanName": "SQLAuditLogsToOMSPlan",
 
     "jobCollectionName": "SQLAuditLogsToOMSJob",
@@ -82,7 +86,7 @@
 
       "type": "Microsoft.Web/serverfarms",
 
-      "location": "[variables('siteLocation')]",
+      "location": "[parameters('siteLocation')]",
       "sku": {
         "name": "F1",
         "tier": "Free",
@@ -109,7 +113,7 @@
 
       "type": "Microsoft.Web/sites",
 
-      "location": "[variables('siteLocation')]",
+      "location": "[parameters('siteLocation')]",
 
       "dependsOn": [
 
@@ -199,7 +203,7 @@
 
       ],
 
-      "location": "[variables('siteLocation')]",
+      "location": "[parameters('siteLocation')]",
 
       "properties": {
 
@@ -243,7 +247,7 @@
             "[resourceId('Microsoft.Scheduler/jobCollections', variables('jobCollectionName'))]"
 
           ],
-          "location": "[variables('siteLocation')]",
+          "location": "[parameters('siteLocation')]",
 
           "properties": {
 
