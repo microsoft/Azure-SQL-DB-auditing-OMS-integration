@@ -381,6 +381,9 @@ namespace XEL2OMS
         public string Date { get; set; }
 
         [JsonProperty]
+        public DateTimeOffset? LastModified { get; set; }
+
+        [JsonProperty]
         public int EventNumber { get; set; }
 
         public SubfolderState()
@@ -390,6 +393,7 @@ namespace XEL2OMS
             var month = lastWeek.Month > 10 ? lastWeek.Month.ToString() : string.Format("0{0}", lastWeek.Month.ToString());
             var day = lastWeek.Day > 10 ? lastWeek.Day.ToString() : string.Format("0{0}", lastWeek.Day.ToString());
             Date = string.Format("{0}-{1}-{2}", lastWeek.Year, month, day);
+            LastModified = DateTimeOffset.MinValue;
         }
     }
 }

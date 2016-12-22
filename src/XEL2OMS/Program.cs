@@ -135,13 +135,14 @@ namespace XEL2OMS
             int nextEvent = 0;
             int eventNumber = 0;
             int datesCompareResult = -1;
-            string lastBlob = null;
             string currentDate = null;
             string subfolderName = new DirectoryInfo(subfolder.Prefix).Name;
 
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder {0}", subfolder.Prefix);
             IEnumerable<CloudBlobDirectory> dateFolders = GetSubDirectories(subfolderName, subfolder, databaseState);
             var subfolderState = databaseState[subfolderName];
+            string lastBlob = subfolderState.BlobName;
+            DateTimeOffset? lastModified = subfolderState.LastModified;
             try
             {
                 foreach (var dateFolder in dateFolders)
@@ -174,6 +175,10 @@ namespace XEL2OMS
 
                             if (blobsCompareResult == 0)
                             {
+                                if (blob.Properties.LastModified == subfolderState.LastModified)
+                                {
+                                    continue;
+                                }
                                 eventNumber = subfolderState.EventNumber;
                             }
                         }
@@ -181,12 +186,17 @@ namespace XEL2OMS
                         tasks.Add(SendBlobToOMS(blob, eventNumber, oms));
 
                         lastBlob = blobName;
+                        lastModified = blob.Properties.LastModified;
                         eventNumber = 0;
                     }
 
                     Task.WaitAll(tasks.ToArray());
-                    nextEvent = tasks.Last().Result;
+                    if (tasks.Count > 0)
+                    {
+                        nextEvent = tasks.Last().Result;
+                    }
                     subfolderState.BlobName = lastBlob;
+                    subfolderState.LastModified = lastModified;
                     if (datesCompareResult >= 0)
                     {
                         subfolderState.Date = currentDate;
