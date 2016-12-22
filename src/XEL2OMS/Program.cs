@@ -158,7 +158,7 @@ namespace XEL2OMS
                     var tasks = new List<Task<int>>();
 
                     IEnumerable<CloudPageBlob> pageBlobs = dateFolder.ListBlobs(useFlatBlobListing: true).OfType<CloudPageBlob>()
-                        .Where(b => b.Name.EndsWith(".xel", StringComparison.OrdinalIgnoreCase));
+                        .Where(b => b.Name.EndsWith(".xel", StringComparison.OrdinalIgnoreCase)).ToList();
 
                     foreach (var blob in pageBlobs)
                     {
@@ -242,7 +242,7 @@ namespace XEL2OMS
                 dictionary.Add(directoryName, new T());
             }
 
-            return directory.ListBlobs().OfType<CloudBlobDirectory>();
+            return directory.ListBlobs().OfType<CloudBlobDirectory>().ToList();
         }
 
         private static StateDictionary GetStates(string fileName)
@@ -286,7 +286,7 @@ namespace XEL2OMS
 
                 s_consoleTracer.TraceInformation("Sending logs to OMS");
 
-                IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>();
+                IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>().ToList();
                 foreach (var server in servers)
                 {
                     SendLogsFromServer(server, oms);
