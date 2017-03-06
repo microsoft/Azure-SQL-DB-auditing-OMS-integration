@@ -60,6 +60,9 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	
 	> You will not be required to access this application, it will be running in the background, periodically pushing the audit logs to OMS.
 
+> [!IMPORTANT]
+> It can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
+
 <br>
 ###<a id="subheading-2-4">Import Azure SQL DB audit sample dashboard to OMS</a>
 
@@ -82,6 +85,21 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][7]
 
 
+<br>
+# Troubleshooting
+
+If you've completed the setup process but don't see audit data in your OMS workspace, you'll be able to review the logs for the import operation job in the Azure portal to try and identify the problem:
+
+1. Go to the App Service that you created during the deployment of the sample application.
+
+2. Click on "WebJobs" on the left menu and then on "Logs" in the top menu.
+	
+	![Navigation Pane][9]
+
+3. In the page that opens, you'll be able to view the logs for a specific run by clicking on the relevant job run link:
+
+	![Navigation Pane][10]
+
 
 [1]: ./media/1_storage_access_keys.png
 [2]: ./media/2_oms_settings.png
@@ -91,7 +109,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 [6]: ./media/6_sql_database_audit_tile.png
 [7]: ./media/7_sql_database_audit_report.png
 [8]: http://azuredeploy.net/deploybutton.png
-
+[9]: ./media/9_webjobs_logs.png
+[10]: ./media/10_webjobs_logs_2.png
 
 [101]: https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration/blob/master/SQLDatabaseAudit.omsview
 
