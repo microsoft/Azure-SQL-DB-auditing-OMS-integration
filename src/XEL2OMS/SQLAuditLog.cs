@@ -331,6 +331,9 @@ namespace XEL2OMS
         [JsonProperty]
         public string ActionName { get; private set; }
 
+        [JsonProperty]
+        public string ApplicationName { get; private set; }
+
         public SQLAuditLog(PublishedEvent currentEvent)
         {
             if (currentEvent.Fields["event_time"].Value == null)
@@ -367,6 +370,7 @@ namespace XEL2OMS
             SchemaName = Convert.ToString(currentEvent.Fields["schema_name"].Value);
             ObjectName = Convert.ToString(currentEvent.Fields["object_name"].Value);
             Statement = Convert.ToString(currentEvent.Fields["statement"].Value);
+            ApplicationName= Convert.ToString(currentEvent.Fields["application_name"].Value);
         }
 
     }
