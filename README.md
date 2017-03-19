@@ -1,6 +1,6 @@
 #Azure SQL DB Auditing log integration into OMS
 
-This is **sample application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
+This is a **sync application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
 
 It allows using OMS Log Analytics to explore and analyze your database activity, and gain insight into discrepancies and anomalies that could indicate potential business concerns or suspected security violations.  
 
@@ -48,7 +48,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][3]
 
 <br>
-###<a id="subheading-2-3">Deploy sample application to Azure</a>
+###<a id="subheading-2-3">Deploy sync application to Azure</a>
 
 1. Click on the **Deploy to Azure** button below to initiate deployment process. 
 
@@ -61,10 +61,10 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	> You will not be required to access this application, it will be running in the background, periodically pushing the audit logs to OMS.
 
 > [!IMPORTANT]
-> Once the sample application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
+> Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
 
 <br>
-###<a id="subheading-2-4">Import Azure SQL DB audit sample dashboard to OMS</a>
+###<a id="subheading-2-4">Import Azure SQL DB audit sync dashboard to OMS</a>
 
 1. Download [SQLDatabaseAudit.omsview][101] to your PC.
 
@@ -88,11 +88,11 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 <br>
 # Troubleshooting
 
-> Once the sample application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
+> Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
 
 If you've completed the setup process but don't see audit data in your OMS workspace, you'll be able to review the logs for the import operation job in the Azure portal to try and identify the problem:
 
-1. Go to the App Service that you created during the deployment of the sample application.
+1. Go to the App Service that you created during the deployment of the sync application.
 
 2. Click on "WebJobs" on the left menu and then on "Logs" in the top menu.
 	
