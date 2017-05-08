@@ -27,6 +27,7 @@ namespace XEL2OMS
         private const int DefaultRetryCount = 3;
         private static readonly string StateFileName = Path.Combine(GetLocalStorageFolder(), "states.json");
         private static readonly StateDictionary StatesList = GetStates(StateFileName);
+        private static List<string> auditLogProcessingFailures = new List<string>();
 
         [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes", Justification = "Should catch any exception")]
         private static List<SQLAuditLog> ParseXEL(QueryableXEventData events, int eventNumber, string blobName)
@@ -211,6 +212,7 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder: {0}. Reason: {1}", subfolder.Prefix, e);
+                UpdateFailuresLog(subfolder.Prefix, e);
             }
         }
 
@@ -234,6 +236,7 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for database: {0}. Reason: {1}", databaseDirectory.Prefix, e);
+                UpdateFailuresLog(databaseDirectory.Prefix, e);
             }
 
         }
@@ -241,7 +244,6 @@ namespace XEL2OMS
         private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, OMSIngestionApi oms)
         {
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing audit logs for server: {0}", serverDirectory.Prefix);
-
             try
             {
                 string serverName = new DirectoryInfo(serverDirectory.Prefix).Name;
@@ -257,8 +259,8 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for server: {0}. Reason: {1}", serverDirectory.Prefix, e);
+                UpdateFailuresLog(serverDirectory.Prefix, e);
             }
-
         }
 
         private static IEnumerable<CloudBlobDirectory> GetSubDirectories<T>(string directoryName, CloudBlobDirectory directory, IDictionary<string, T> dictionary) where T : new()
@@ -288,6 +290,12 @@ namespace XEL2OMS
             }
 
             return statesList;
+        }
+
+        private static void UpdateFailuresLog(string resource, Exception ex)
+        {
+            string failureMessage = string.Format("Failed processing audit logs for: {0}. Reason: {1}", resource, ex.Message);
+            auditLogProcessingFailures.Add(failureMessage);
         }
 
         static void Main()
@@ -331,6 +339,13 @@ namespace XEL2OMS
             catch (Exception ex)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Error: {0}", ex);
+            }
+            finally
+            {
+                if (auditLogProcessingFailures.Count > 0)
+                {
+                    s_consoleTracer.TraceInformation("Processing audit logs of the following resources failed during the operation:\n{0}", string.Join(Environment.NewLine, auditLogProcessingFailures));
+                }
             }
         }
     }
