@@ -136,9 +136,10 @@ namespace XEL2OMS
             int eventNumber = 0;
             int datesCompareResult = -1;
             string currentDate = null;
-            string subfolderName = new DirectoryInfo(subfolder.Prefix).Name;
 
-            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder {0}", subfolder.Prefix);
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing sub folder: {0}", subfolder.Prefix);
+
+            string subfolderName = new DirectoryInfo(subfolder.Prefix).Name;
             IEnumerable<CloudBlobDirectory> dateFolders = GetSubDirectories(subfolderName, subfolder, databaseState);
             var subfolderState = databaseState[subfolderName];
             string lastBlob = subfolderState.BlobName;
@@ -205,34 +206,59 @@ namespace XEL2OMS
                     subfolderState.EventNumber = nextEvent;
                     File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
                 }
-                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder {0}", subfolder.Prefix);
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing sub folder: {0}", subfolder.Prefix);
             }
             catch (Exception e)
             {
-                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder {0}", subfolder.Prefix);
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder: {0}. Reason: {1}", subfolder.Prefix, e);
             }
         }
 
         private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms)
         {
-            string databaseName = new DirectoryInfo(databaseDirectory.Prefix).Name;
-            IEnumerable<CloudBlobDirectory> subfolders = GetSubDirectories(databaseName, databaseDirectory, serverState);
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing audit logs for database: {0}", databaseDirectory.Prefix);
 
-            foreach (var subfolder in subfolders)
+            try
             {
-                SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
+                string databaseName = new DirectoryInfo(databaseDirectory.Prefix).Name;
+                IEnumerable<CloudBlobDirectory> subfolders = GetSubDirectories(databaseName, databaseDirectory, serverState);
+
+                foreach (var subfolder in subfolders)
+                {
+                    SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
+                }
+
+
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing audit logs for database: {0}", databaseDirectory.Prefix);
             }
+            catch (Exception e)
+            {
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for database: {0}. Reason: {1}", databaseDirectory.Prefix, e);
+            }
+
         }
 
         private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, OMSIngestionApi oms)
         {
-            string serverName = new DirectoryInfo(serverDirectory.Prefix).Name;
-            IEnumerable<CloudBlobDirectory> databases = GetSubDirectories(serverName, serverDirectory, StatesList);
+            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing audit logs for server: {0}", serverDirectory.Prefix);
 
-            foreach (var database in databases)
+            try
             {
-                SendLogsFromDatabase(database, StatesList[serverName], oms);
+                string serverName = new DirectoryInfo(serverDirectory.Prefix).Name;
+                IEnumerable<CloudBlobDirectory> databases = GetSubDirectories(serverName, serverDirectory, StatesList);
+
+                foreach (var database in databases)
+                {
+                    SendLogsFromDatabase(database, StatesList[serverName], oms);
+                }
+
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing audit logs for server: {0}", serverDirectory.Prefix);
             }
+            catch (Exception e)
+            {
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for server: {0}. Reason: {1}", serverDirectory.Prefix, e);
+            }
+
         }
 
         private static IEnumerable<CloudBlobDirectory> GetSubDirectories<T>(string directoryName, CloudBlobDirectory directory, IDictionary<string, T> dictionary) where T : new()
@@ -272,15 +298,18 @@ namespace XEL2OMS
             string sharedKey = CloudConfigurationManager.GetSetting("omsWorkspaceKey");
 
             CloudStorageAccount storageAccount;
-            var oms = new OMSIngestionApi(s_consoleTracer, customerId, sharedKey);
 
-            if (CloudStorageAccount.TryParse(connectionString, out storageAccount) == false)
-            {
-                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Connection string can't be parsed: {0}", connectionString);
-                return;
-            }
             try
             {
+                var oms = new OMSIngestionApi(s_consoleTracer, customerId, sharedKey);
+
+                if (CloudStorageAccount.TryParse(connectionString, out storageAccount) == false)
+                {
+                    s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Connection string can't be parsed: {0}",
+                        connectionString);
+                    return;
+                }
+
                 CloudBlobClient blobClient = storageAccount.CreateCloudBlobClient();
                 CloudBlobContainer container = blobClient.GetContainerReference(containerName);
 
@@ -294,6 +323,10 @@ namespace XEL2OMS
 
                 File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
                 s_consoleTracer.TraceInformation("{0} logs were successfully sent", totalLogs);
+            }
+            catch (FormatException formatException)
+            {
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "The OMS workspace key is bad formatted. Error: {0}", formatException);
             }
             catch (Exception ex)
             {
