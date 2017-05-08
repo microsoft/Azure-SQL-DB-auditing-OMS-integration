@@ -12,13 +12,16 @@ namespace XEL2OMS
 {
     public class OMSIngestionApi
     {
-        private string m_CustomerId;
-        private string m_SharedKey;
-        private TraceSource m_Tracer;
+        private readonly string m_CustomerId;
+        private readonly string m_SharedKey;
+        private readonly TraceSource m_Tracer;
         private readonly RetryPolicy m_Retry;
 
         public OMSIngestionApi(TraceSource tracer, string customerId, string sharedKey)
         {
+            // Check the shared key is of a valid format
+            Convert.FromBase64String(sharedKey);
+
             m_CustomerId = customerId;
             m_SharedKey = sharedKey;
             m_Tracer = tracer;
