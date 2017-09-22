@@ -107,8 +107,8 @@ namespace XEL2OMS
                 {
                     var jsonList = JsonConvert.SerializeObject(chunk);
                     await oms.SendOMSApiIngestionFile(jsonList);
-                    eventNumber += list.Count;
-                    totalLogs += list.Count;
+                    eventNumber += chunk.Count;
+                    totalLogs += chunk.Count;
                 }
             }
             catch (Exception e)
@@ -229,7 +229,6 @@ namespace XEL2OMS
                 {
                     SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
                 }
-
 
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing audit logs for database: {0}", databaseDirectory.Prefix);
             }
