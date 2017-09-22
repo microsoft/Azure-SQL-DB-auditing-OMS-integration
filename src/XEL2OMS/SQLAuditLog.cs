@@ -335,7 +335,7 @@ namespace XEL2OMS
         public string ApplicationName { get; private set; }
         
         [JsonProperty]
-        public string DurationInMilliSeconds { get; private set; }
+        public long DurationInMilliSeconds { get; private set; }
 
         public SQLAuditLog(PublishedEvent currentEvent)
         {
