@@ -27,7 +27,7 @@ IF !ERRORLEVEL! NEQ 0 goto error
 ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 :: Post deployment stub
-xcopy /s src\XEL2OMS\bin\x64\release\* %WEBROOT_PATH%\App_Data\jobs\triggered\SQLAuditLogsToOMSJob\*
+xcopy /s /y src\XEL2OMS\bin\x64\release\* %WEBROOT_PATH%\App_Data\jobs\triggered\SQLAuditLogsToOMSJob\*
 IF !ERRORLEVEL! NEQ 0 goto error
 
 goto end
