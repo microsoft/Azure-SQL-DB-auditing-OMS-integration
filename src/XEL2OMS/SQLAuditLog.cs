@@ -333,7 +333,7 @@ namespace XEL2OMS
 
         [JsonProperty]
         public string ApplicationName { get; private set; }
-        
+
         [JsonProperty]
         public long DurationInMilliSeconds { get; private set; }
 
@@ -382,13 +382,12 @@ namespace XEL2OMS
             SchemaName = Convert.ToString(currentEvent.Fields["schema_name"].Value);
             ObjectName = Convert.ToString(currentEvent.Fields["object_name"].Value);
             Statement = Convert.ToString(currentEvent.Fields["statement"].Value);
-            ApplicationName= Convert.ToString(currentEvent.Fields["application_name"].Value);
+            ApplicationName = Convert.ToString(currentEvent.Fields["application_name"].Value);
             DurationInMilliSeconds = Convert.ToInt64(currentEvent.Fields["duration_milliseconds"].Value);
-            ResponseRows= Convert.ToInt64(currentEvent.Fields["response_rowa"].Value);
-            AffectedRows= Convert.ToInt64(currentEvent.Fields["affected_rows"].Value);
-            ConnectionId= Convert.ToString(currentEvent.Fields["connection)id"].Value);
+            ResponseRows = Convert.ToInt64(currentEvent.Fields["response_rows"].Value);
+            AffectedRows = Convert.ToInt64(currentEvent.Fields["affected_rows"].Value);
+            ConnectionId = Convert.ToString(currentEvent.Fields["connection_id"].Value);
         }
-
     }
 
     [JsonObject]
