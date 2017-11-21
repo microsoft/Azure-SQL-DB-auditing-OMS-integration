@@ -337,6 +337,15 @@ namespace XEL2OMS
         [JsonProperty]
         public long DurationInMilliSeconds { get; private set; }
 
+        [JsonProperty]
+        public long ResponseRows { get; private set; }
+
+        [JsonProperty]
+        public long AffectedRows { get; private set; }
+
+        [JsonProperty]
+        public string ConnectionId { get; private set; }
+
         public SQLAuditLog(PublishedEvent currentEvent)
         {
             if (currentEvent.Fields["event_time"].Value == null)
@@ -375,6 +384,9 @@ namespace XEL2OMS
             Statement = Convert.ToString(currentEvent.Fields["statement"].Value);
             ApplicationName= Convert.ToString(currentEvent.Fields["application_name"].Value);
             DurationInMilliSeconds = Convert.ToInt64(currentEvent.Fields["duration_milliseconds"].Value);
+            ResponseRows= Convert.ToInt64(currentEvent.Fields["response_rowa"].Value);
+            AffectedRows= Convert.ToInt64(currentEvent.Fields["affected_rows"].Value);
+            ConnectionId= Convert.ToString(currentEvent.Fields["connection)id"].Value);
         }
 
     }
