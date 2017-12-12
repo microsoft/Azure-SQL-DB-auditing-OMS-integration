@@ -1,4 +1,4 @@
-#Azure SQL DB Auditing log integration into OMS
+# Azure SQL DB Auditing log integration into OMS
 
 This is a **sync application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
 
@@ -24,7 +24,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 #Setup Guide
 
 
-###<a id="subheading-2-1">Retrieve SQL DB Auditing - Storage Connection String</a>
+### <a id="subheading-2-1">Retrieve SQL DB Auditing - Storage Connection String</a>
 
 1. Launch the [Azure Portal](https://portal.azure.com) at https://portal.azure.com.
 
@@ -33,7 +33,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][1]
 
 <br>
-###<a id="subheading-2-2">Retrieve OMS Workspace ID and Access key</a>
+
+### <a id="subheading-2-2">Retrieve OMS Workspace ID and Access key</a>
 
 1. Launch the [Microsoft Operations Management Suite (OMS)](https://mms.microsoft.com) at https://mms.microsoft.com.
 
@@ -48,7 +49,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][3]
 
 <br>
-###<a id="subheading-2-3">Deploy sync application to Azure</a>
+
+### <a id="subheading-2-3">Deploy sync application to Azure</a>
 
 1. Click on the **Deploy to Azure** button below to initiate deployment process. 
 
@@ -64,7 +66,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 > Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
 
 <br>
-###<a id="subheading-2-4">Import Azure SQL DB audit sync dashboard to OMS</a>
+
+### <a id="subheading-2-4">Import Azure SQL DB audit sync dashboard to OMS</a>
 
 1. Download [SQLDatabaseAudit.omsview][101] to your PC.
 
@@ -86,6 +89,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 
 <br>
+
 # Troubleshooting
 
 > Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
@@ -115,5 +119,3 @@ If you've completed the setup process but don't see audit data in your OMS works
 [10]: ./media/10_webjobs_logs_2.png
 
 [101]: https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration/blob/master/SQLDatabaseAudit.omsview
-
-
