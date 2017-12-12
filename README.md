@@ -13,7 +13,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 2. Azure Subscription with resource creation permissions
 3. OMS workspace with Administrator or Contributor permissions
 
-#Estimated Cost of Deployed Resources
+# Estimated Cost of Deployed Resources
 
 
 |  Resource      | Cost/Month           | Cost/Hr  |
@@ -21,7 +21,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 | [B1 App Service Plan](https://azure.microsoft.com/en-us/pricing/details/app-service/)		| $55.80 | $0.075 |
 | [Storage Plan](https://azure.microsoft.com/en-us/pricing/details/storage/)				| ~$0      |   $0.0036 / transaction |
 
-#Setup Guide
+# Setup Guide
 
 
 ### <a id="subheading-2-1">Retrieve SQL DB Auditing - Storage Connection String</a>

@@ -1,34 +1,19 @@
 {
-
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-
   "contentVersion": "1.0.0.0",
-
   "parameters": {
     "siteName": {
-
       "type": "string"
-
     },
-
     "siteLocation": {
-
       "type": "string"
-
     },
-
     "SQL Auditing - Storage Connection String": {
-
       "type": "string",
-
       "metadata": {
-
         "description": "Storage connection string provides access to the Azure storage account that contains SQL audit logs in blob storage."
-
       }
-
     },
-
     "OmsEndpointAddress": {
       "type": "string",
       "defaultValue": "ods.opinsights.azure.com",
@@ -40,65 +25,37 @@
         "description": "OMS endpoint where the log should be shipped."
       }
     },
-
-
     "OMS Workspace Id": {
-
       "type": "string",
-
       "metadata": {
-
         "description": "OMS Workspace ID indicates the Microsoft Operations Management Suite account that provides log analytics services."
-
       }
-
     },
-
     "OMS Workspace Key": {
-
       "type": "string",
-
       "metadata": {
-
         "description": "The OMS Access Key provides access to the Microsoft Operations Management Suite account that provides log analytics services."
-
       }
-
     },
     "repoUrl": {
-
-      "type": "string"
-
+      "type": "string",
+      "defaultValue": "https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration"
     },
-
     "branch": {
-
-      "type": "string"
-
+      "type": "string",
+      "defaultValue": "master"
     }
   },
-
   "variables": {
-
     "hostingPlanName": "SQLAuditLogsToOMSPlan",
-
     "jobCollectionName": "SQLAuditLogsToOMSJob",
-
     "ContainerName": "sqldbauditlogs"
-
-
   },
-
   "resources": [
-
     {
-
       "apiVersion": "2015-08-01",
-
       "name": "[variables('hostingPlanName')]",
-
       "type": "Microsoft.Web/serverfarms",
-
       "location": "[parameters('siteLocation')]",
       "sku": {
         "name": "F1",
@@ -107,82 +64,44 @@
         "family": "F",
         "capacity": 0
       },
-
       "properties": {
-
         "name": "[variables('hostingPlanName')]",
-
         "numberOfWorkers": 0
-
       }
-
     },
-
     {
-
       "apiVersion": "2015-08-01",
-
       "name": "[parameters('siteName')]",
-
       "type": "Microsoft.Web/sites",
-
       "location": "[parameters('siteLocation')]",
-
       "dependsOn": [
-
         "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-
       ],
-
       "properties": {
-
         "serverFarmId": "[resourceId('Microsoft.Web/serverfarms', variables('hostingPlanName'))]"
-
       },
-
       "resources": [
-
         {
-
           "apiVersion": "2015-08-01",
-
           "name": "web",
-
           "type": "sourcecontrols",
-
           "dependsOn": [
-
             "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]"
-
           ],
-
           "properties": {
-
             "RepoUrl": "[parameters('repoUrl')]",
-
             "branch": "[parameters('branch')]",
-
             "IsManualIntegration": true
-
           }
-
         },
-
         {
-
           "apiVersion": "2015-08-01",
-
           "name": "appsettings",
-
           "type": "config",
-
           "dependsOn": [
-
             "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
             "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]"
-
           ],
-
           "properties": {
             "ConnectionString": "[parameters('SQL Auditing - Storage Connection String')]",
             "ContainerName": "[variables('ContainerName')]",
@@ -190,118 +109,62 @@
             "omsWorkspaceId": "[parameters('OMS Workspace Id')]",
             "omsWorkspaceKey": "[parameters('OMS Workspace Key')]"
           }
-
         }
-
       ]
-
     },
-
     {
-
       "apiVersion": "2016-03-01",
-
       "name": "[variables('jobCollectionName')]",
-
       "type": "Microsoft.Scheduler/jobCollections",
-
       "dependsOn": [
-
         "[resourceId('Microsoft.Web/Sites', parameters('siteName'))]",
         "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]"
-
       ],
-
       "location": "[parameters('siteLocation')]",
-
       "properties": {
-
         "sku": {
-
           "name": "standard"
-
         },
-
         "quota": {
-
           "maxJobCount": "10",
-
           "maxRecurrence": {
-
             "Frequency": "minute",
-
             "interval": "1"
-
           }
-
         }
-
       },
-
       "resources": [
-
         {
-
           "apiVersion": "2016-03-01",
-
           "name": "SQLAuditLogsToOMSJob",
-
           "type": "jobs",
-
           "dependsOn": [
-
             "[resourceId('Microsoft.Web/sites/config', parameters('siteName'), 'appsettings')]",
             "[resourceId('Microsoft.Web/sites/sourcecontrols', parameters('siteName'), 'web')]",
-
             "[resourceId('Microsoft.Scheduler/jobCollections', variables('jobCollectionName'))]"
-
           ],
           "location": "[parameters('siteLocation')]",
-
           "properties": {
-
             "action": {
-
               "request": {
-
                 "uri": "[concat(list(resourceId('Microsoft.Web/sites/config', parameters('siteName'), 'publishingcredentials'), '2014-06-01').properties.scmUri, '/api/triggeredjobs/SQLAuditLogsToOMSJob/run')]",
-
                 "method": "POST"
-
               },
-
               "type": "http",
-
               "retryPolicy": {
-
                 "retryType": "Fixed",
-
                 "retryInterval": "PT1M",
-
                 "retryCount": 2
-
               }
-
             },
-
             "state": "enabled",
-
             "recurrence": {
-
               "interval": "15",
-
               "Frequency": "Minute"
-
             }
-
           }
-
         }
-
       ]
-
     }
-
   ]
-
 }

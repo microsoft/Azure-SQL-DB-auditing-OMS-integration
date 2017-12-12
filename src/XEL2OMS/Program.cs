@@ -89,39 +89,47 @@ namespace XEL2OMS
             }
         }
 
-        private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
+        private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber)
         {
-            RetryPolicy retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, DefaultRetryCount);
-
-            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing: {0}", blob.Uri);
-
+            IEnumerable<List<SQLAuditLog>> chunkedList;
+            List<SQLAuditLog> list;
+            OmsIngestion service;
+            OperationContext operationContext;
+            RetryPolicy retryPolicy;
             string fileName = Path.Combine(GetLocalStorageFolder(), Path.GetRandomFileName() + ".xel");
+
             try
             {
-                OperationContext operationContext = new OperationContext();
+                operationContext = new OperationContext();
+
+                service = new OmsIngestion(
+                    s_consoleTracer,
+                    ConfigurationManager.AppSettings["omsWorkspaceId"],
+                    ConfigurationManager.AppSettings["omsWorkspaceKey"]);
+
+                retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, DefaultRetryCount);
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing: {0}", blob.Uri);
+
                 operationContext.RequestCompleted += (sender, e) => PrintHeaders(e);
                 await retryPolicy.ExecuteAsync((() => blob.DownloadToFileAsync(fileName, FileMode.OpenOrCreate, null, null, operationContext)));
-                List<SQLAuditLog> list;
+
                 using (var events = new QueryableXEventData(fileName))
                 {
                     list = ParseXEL(events, eventNumber, blob.Name);
                 }
-                IEnumerable<List<SQLAuditLog>> chunkedList = list.Chunk(10000);
+
+                chunkedList = list.Chunk(10000);
+
                 foreach (List<SQLAuditLog> chunk in chunkedList)
                 {
                     var jsonList = JsonConvert.SerializeObject(chunk);
-                    await oms.SendOMSApiIngestionFile(jsonList);
+                    await service.SendAsync(jsonList);
                     eventNumber += chunk.Count;
                     totalLogs += chunk.Count;
                 }
-            }
-            catch (Exception e)
-            {
-                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing: {0}. Reason: {1}", blob.Uri, e);
-                throw;
-            }
-            finally
-            {
+
+                s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing: {0}", blob.Uri);
+
                 try
                 {
                     File.Delete(fileName);
@@ -130,12 +138,24 @@ namespace XEL2OMS
                 {
                     s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Was not able to delete file: {0}. Reason: {1}", fileName, e.Message);
                 }
+
+                return eventNumber;
             }
-            s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing: {0}", blob.Uri);
-            return eventNumber;
+            catch (Exception e)
+            {
+                s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing: {0}. Reason: {1}", blob.Uri, e);
+                throw;
+            }
+            finally
+            {
+                list = null;
+                operationContext = null;
+                retryPolicy = null;
+                service = null;
+            }
         }
 
-        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState, OMSIngestionApi oms)
+        private static void SendLogsFromSubfolder(CloudBlobDirectory subfolder, databaseStateDictionary databaseState)
         {
             int nextEvent = 0;
             int eventNumber = 0;
@@ -189,7 +209,7 @@ namespace XEL2OMS
                             }
                         }
 
-                        tasks.Add(SendBlobToOMS(blob, eventNumber, oms));
+                        tasks.Add(SendBlobToOMS(blob, eventNumber));
 
                         lastBlob = blobName;
                         lastModified = blob.Properties.LastModified;
@@ -216,11 +236,11 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Error, 0, "Failed processing sub folder: {0}. Reason: {1}", subfolder.Prefix, e);
-                UpdateFailuresLog(subfolder.Prefix, e);
+                auditLogProcessingFailures.Add($"Failed processing audit logs for: {subfolder.Prefix}. Reason: {e.Message}");
             }
         }
 
-        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState, OMSIngestionApi oms)
+        private static void SendLogsFromDatabase(CloudBlobDirectory databaseDirectory, serverStateDictionary serverState)
         {
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing audit logs for database: {0}", databaseDirectory.Prefix);
 
@@ -231,7 +251,7 @@ namespace XEL2OMS
 
                 foreach (var subfolder in subfolders)
                 {
-                    SendLogsFromSubfolder(subfolder, serverState[databaseName], oms);
+                    SendLogsFromSubfolder(subfolder, serverState[databaseName]);
                 }
 
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing audit logs for database: {0}", databaseDirectory.Prefix);
@@ -239,12 +259,12 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for database: {0}. Reason: {1}", databaseDirectory.Prefix, e);
-                UpdateFailuresLog(databaseDirectory.Prefix, e);
+                auditLogProcessingFailures.Add($"Failed processing audit logs for: {databaseDirectory.Prefix}. Reason: {e.Message}");
             }
 
         }
 
-        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory, OMSIngestionApi oms)
+        private static void SendLogsFromServer(CloudBlobDirectory serverDirectory)
         {
             s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Processing audit logs for server: {0}", serverDirectory.Prefix);
             try
@@ -254,7 +274,7 @@ namespace XEL2OMS
 
                 foreach (var database in databases)
                 {
-                    SendLogsFromDatabase(database, StatesList[serverName], oms);
+                    SendLogsFromDatabase(database, StatesList[serverName]);
                 }
 
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Done processing audit logs for server: {0}", serverDirectory.Prefix);
@@ -262,7 +282,7 @@ namespace XEL2OMS
             catch (Exception e)
             {
                 s_consoleTracer.TraceEvent(TraceEventType.Information, 0, "Failed processing audit logs for server: {0}. Reason: {1}", serverDirectory.Prefix, e);
-                UpdateFailuresLog(serverDirectory.Prefix, e);
+                auditLogProcessingFailures.Add($"Failed processing audit logs for: {serverDirectory.Prefix}. Reason: {e.Message}");
             }
         }
 
@@ -295,24 +315,15 @@ namespace XEL2OMS
             return statesList;
         }
 
-        private static void UpdateFailuresLog(string resource, Exception ex)
-        {
-            string failureMessage = string.Format("Failed processing audit logs for: {0}. Reason: {1}", resource, ex.Message);
-            auditLogProcessingFailures.Add(failureMessage);
-        }
-
         static void Main()
         {
             string connectionString = ConfigurationManager.AppSettings["ConnectionString"];
             string containerName = "sqldbauditlogs";
-            string customerId = ConfigurationManager.AppSettings["omsWorkspaceId"];
-            string sharedKey = ConfigurationManager.AppSettings["omsWorkspaceKey"];
 
             CloudStorageAccount storageAccount;
 
             try
             {
-                var oms = new OMSIngestionApi(s_consoleTracer, customerId, sharedKey);
 
                 if (CloudStorageAccount.TryParse(connectionString, out storageAccount) == false)
                 {
@@ -327,9 +338,10 @@ namespace XEL2OMS
                 s_consoleTracer.TraceInformation("Sending logs to OMS");
 
                 IEnumerable<CloudBlobDirectory> servers = container.ListBlobs().OfType<CloudBlobDirectory>().ToList();
+
                 foreach (var server in servers)
                 {
-                    SendLogsFromServer(server, oms);
+                    SendLogsFromServer(server);
                 }
 
                 File.WriteAllText(StateFileName, JsonConvert.SerializeObject(StatesList));
