@@ -1,8 +1,14 @@
-﻿using System;
-using System.Runtime.Serialization;
+﻿// -----------------------------------------------------------------------
+// <copyright file="HttpException.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace XEL2OMS
 {
+    using System;
+    using System.Runtime.Serialization;
+
     [Serializable]
     internal class HttpException : Exception
     {

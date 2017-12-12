@@ -10,12 +10,12 @@
       "type": "string"
 
     },
-	
-	"siteLocation": {
-	
-	  "type": "string"
-	  
-	},
+
+    "siteLocation": {
+
+      "type": "string"
+
+    },
 
     "SQL Auditing - Storage Connection String": {
 
@@ -28,6 +28,19 @@
       }
 
     },
+
+    "OmsEndpointAddress": {
+      "type": "string",
+      "defaultValue": "ods.opinsights.azure.com",
+      "allowedValues": [
+        "ods.opinsights.azure.com",
+        "ods.opinsights.azure.us"
+      ],
+      "metadata": {
+        "description": "OMS endpoint where the log should be shipped."
+      }
+    },
+
 
     "OMS Workspace Id": {
 
@@ -171,15 +184,11 @@
           ],
 
           "properties": {
-
             "ConnectionString": "[parameters('SQL Auditing - Storage Connection String')]",
-
             "ContainerName": "[variables('ContainerName')]",
-
+            "OmsEndpointAddress": "[parameters('OmsEndpointAddress')]",
             "omsWorkspaceId": "[parameters('OMS Workspace Id')]",
-
             "omsWorkspaceKey": "[parameters('OMS Workspace Key')]"
-
           }
 
         }

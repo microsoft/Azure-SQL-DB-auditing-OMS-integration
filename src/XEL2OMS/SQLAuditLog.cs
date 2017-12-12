@@ -1,10 +1,16 @@
-﻿using Microsoft.SqlServer.XEvent.Linq;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿// -----------------------------------------------------------------------
+// <copyright file="SQLAuditLog.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace XEL2OMS
 {
+    using System;
+    using System.Collections.Generic;
+    using Microsoft.SqlServer.XEvent.Linq;
+    using Newtonsoft.Json;
+
     public class ClassTypeData
     {
         public string ClassTypeDescription { get; private set; }

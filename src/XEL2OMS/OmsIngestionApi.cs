@@ -1,15 +1,21 @@
-﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Globalization;
+﻿// -----------------------------------------------------------------------
+// <copyright file="OmsIngestionApi.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace XEL2OMS
 {
+    using System;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.Globalization;
+    using System.IO;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+
     public class OMSIngestionApi
     {
         private readonly string m_CustomerId;
@@ -54,7 +60,7 @@ namespace XEL2OMS
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            string address = string.Format("https://{0}.ods.opinsights.azure.com/api/logs?api-version=2016-04-01", m_CustomerId);
+            string address = $"https://{m_CustomerId}.{ConfigurationManager.AppSettings["OmsEndpointAddress"]}/api/logs?api-version=2016-04-01";
             Uri uriAddress = new Uri(address);
 
             byte[] payload = Encoding.UTF8.GetBytes(requestBody);

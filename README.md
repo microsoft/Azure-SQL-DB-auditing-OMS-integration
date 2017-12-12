@@ -54,7 +54,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 	> During deployment, use the **Storage Connection String**, **Workspace ID**, and **Primary Key** that you saved in the previous steps. 
 
-	<a href="https://azuredeploy.net/" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"></a>
+	[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2FAzure-SQL-DB-auditing-OMS-integration%2Fmaster%2Fazuredeploy.json)
 
 2. When deployment is completed, you can close the web application browser window. 
 	

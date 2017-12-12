@@ -1,24 +1,28 @@
-﻿using Microsoft.SqlServer.XEvent.Linq;
-using Microsoft.WindowsAzure;
-using Microsoft.WindowsAzure.Storage;
-using Microsoft.WindowsAzure.Storage.Blob;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Threading.Tasks;
-using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+﻿// -----------------------------------------------------------------------
+// <copyright file="Program.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace XEL2OMS
 {
-    using Microsoft.Azure;
-    using databaseStateDictionary = Dictionary<string, SubfolderState>;
-    using serverStateDictionary = Dictionary<string, Dictionary<string, SubfolderState>>;
-    using StateDictionary = Dictionary<string, Dictionary<string, Dictionary<string, SubfolderState>>>;
+    using System;
+    using System.Collections.Generic;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+    using System.Threading.Tasks;
+    using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+    using Microsoft.SqlServer.XEvent.Linq;
+    using Microsoft.WindowsAzure.Storage;
+    using Microsoft.WindowsAzure.Storage.Blob;
+    using Newtonsoft.Json;
+    using databaseStateDictionary = System.Collections.Generic.Dictionary<string, SubfolderState>;
+    using serverStateDictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, SubfolderState>>;
+    using StateDictionary = System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, System.Collections.Generic.Dictionary<string, SubfolderState>>>;
 
     public static class Program
     {
@@ -299,10 +303,10 @@ namespace XEL2OMS
 
         static void Main()
         {
-            string connectionString = CloudConfigurationManager.GetSetting("ConnectionString");
+            string connectionString = ConfigurationManager.AppSettings["ConnectionString"];
             string containerName = "sqldbauditlogs";
-            string customerId = CloudConfigurationManager.GetSetting("omsWorkspaceId");
-            string sharedKey = CloudConfigurationManager.GetSetting("omsWorkspaceKey");
+            string customerId = ConfigurationManager.AppSettings["omsWorkspaceId"];
+            string sharedKey = ConfigurationManager.AppSettings["omsWorkspaceKey"];
 
             CloudStorageAccount storageAccount;
 
