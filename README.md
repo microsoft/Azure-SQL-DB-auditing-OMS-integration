@@ -1,4 +1,4 @@
-#Azure SQL DB Auditing log integration into OMS
+# Azure SQL DB Auditing log integration into OMS
 
 This is a **sync application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
 
@@ -13,7 +13,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 2. Azure Subscription with resource creation permissions
 3. OMS workspace with Administrator or Contributor permissions
 
-#Estimated Cost of Deployed Resources
+# Estimated Cost of Deployed Resources
 
 
 |  Resource      | Cost/Month           | Cost/Hr  |
@@ -21,10 +21,10 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 | [B1 App Service Plan](https://azure.microsoft.com/en-us/pricing/details/app-service/)		| $55.80 | $0.075 |
 | [Storage Plan](https://azure.microsoft.com/en-us/pricing/details/storage/)				| ~$0      |   $0.0036 / transaction |
 
-#Setup Guide
+# Setup Guide
 
 
-###<a id="subheading-2-1">Retrieve SQL DB Auditing - Storage Connection String</a>
+### <a id="subheading-2-1">Retrieve SQL DB Auditing - Storage Connection String</a>
 
 1. Launch the [Azure Portal](https://portal.azure.com) at https://portal.azure.com.
 
@@ -33,7 +33,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][1]
 
 <br>
-###<a id="subheading-2-2">Retrieve OMS Workspace ID and Access key</a>
+
+### <a id="subheading-2-2">Retrieve OMS Workspace ID and Access key</a>
 
 1. Launch the [Microsoft Operations Management Suite (OMS)](https://mms.microsoft.com) at https://mms.microsoft.com.
 
@@ -48,13 +49,14 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 	![Navigation Pane][3]
 
 <br>
-###<a id="subheading-2-3">Deploy sync application to Azure</a>
+
+### <a id="subheading-2-3">Deploy sync application to Azure</a>
 
 1. Click on the **Deploy to Azure** button below to initiate deployment process. 
 
 	> During deployment, use the **Storage Connection String**, **Workspace ID**, and **Primary Key** that you saved in the previous steps. 
 
-	<a href="https://azuredeploy.net/" target="_blank"><img src="http://azuredeploy.net/deploybutton.png"></a>
+	[![Deploy to Azure](http://azuredeploy.net/deploybutton.png)](https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FMicrosoft%2FAzure-SQL-DB-auditing-OMS-integration%2Fmaster%2Fazuredeploy.json)
 
 2. When deployment is completed, you can close the web application browser window. 
 	
@@ -64,7 +66,8 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 > Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
 
 <br>
-###<a id="subheading-2-4">Import Azure SQL DB audit sync dashboard to OMS</a>
+
+### <a id="subheading-2-4">Import Azure SQL DB audit sync dashboard to OMS</a>
 
 1. Download [SQLDatabaseAudit.omsview][101] to your PC.
 
@@ -86,6 +89,7 @@ It allows using OMS Log Analytics to explore and analyze your database activity,
 
 
 <br>
+
 # Troubleshooting
 
 > Once the sync application is deployed in Azure, it can take up to 5-10 minutes for initial data to start appearing in your OMS workspace.
@@ -115,5 +119,3 @@ If you've completed the setup process but don't see audit data in your OMS works
 [10]: ./media/10_webjobs_logs_2.png
 
 [101]: https://github.com/Microsoft/Azure-SQL-DB-auditing-OMS-integration/blob/master/SQLDatabaseAudit.omsview
-
-

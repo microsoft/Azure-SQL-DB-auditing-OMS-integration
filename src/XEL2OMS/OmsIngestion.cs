@@ -1,23 +1,28 @@
-﻿using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using System.Globalization;
+﻿// -----------------------------------------------------------------------
+// <copyright file="OmsIngestion.cs" company="Microsoft">
+//     Copyright (c) Microsoft Corporation. All rights reserved.
+// </copyright>
+// -----------------------------------------------------------------------
 
 namespace XEL2OMS
 {
-    public class OMSIngestionApi
+    using System;
+    using System.Configuration;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Net;
+    using System.Text;
+    using System.Threading.Tasks;
+    using Microsoft.Practices.EnterpriseLibrary.TransientFaultHandling;
+
+    public class OmsIngestion
     {
         private readonly string m_CustomerId;
         private readonly string m_SharedKey;
         private readonly TraceSource m_Tracer;
         private readonly RetryPolicy m_Retry;
 
-        public OMSIngestionApi(TraceSource tracer, string customerId, string sharedKey)
+        public OmsIngestion(TraceSource tracer, string customerId, string sharedKey)
         {
             // Check the shared key is of a valid format
             Convert.FromBase64String(sharedKey);
@@ -28,24 +33,8 @@ namespace XEL2OMS
             m_Retry = RetryPolicy.DefaultFixed;
         }
 
-        private string GetOMSApiSignature(string date, int contentLength)
-        {
-            var xHeaders = string.Format("x-ms-date:{0}", date);
-            var stringToHash = string.Format("POST\n{0}\napplication/json\n{1}\n/api/logs", contentLength, xHeaders);
 
-            var bytesToHash = Encoding.UTF8.GetBytes(stringToHash);
-            var keyBytes = Convert.FromBase64String(m_SharedKey);
-
-            using (var sha256 = new System.Security.Cryptography.HMACSHA256(keyBytes))
-            {
-                var calculatedHash = sha256.ComputeHash(bytesToHash);
-                var encodedHash = Convert.ToBase64String(calculatedHash);
-                var authorization = string.Format("SharedKey {0}:{1}", m_CustomerId, encodedHash);
-                return authorization;
-            }
-        }
-
-        public async Task SendOMSApiIngestionFile(string requestBody)
+        public async Task SendAsync(string requestBody)
         {
             var method = "POST";
             var contentType = "application/json";
@@ -54,12 +43,12 @@ namespace XEL2OMS
             Stopwatch stopwatch = new Stopwatch();
             stopwatch.Start();
 
-            string address = string.Format("https://{0}.ods.opinsights.azure.com/api/logs?api-version=2016-04-01", m_CustomerId);
+            string address = $"https://{m_CustomerId}.{ConfigurationManager.AppSettings["OmsEndpointAddress"]}/api/logs?api-version=2016-04-01";
             Uri uriAddress = new Uri(address);
 
             byte[] payload = Encoding.UTF8.GetBytes(requestBody);
 
-            var signature = GetOMSApiSignature(date, payload.Length);
+            var signature = GetSignature(date, payload.Length);
 
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(uriAddress);
 
@@ -84,7 +73,7 @@ namespace XEL2OMS
             if (!(response.StatusCode >= HttpStatusCode.OK && response.StatusCode < HttpStatusCode.Ambiguous))
             {
                 m_Tracer.TraceEvent(TraceEventType.Error, 0, "{0} to {1} failed with error {2}", method, address, response.StatusDescription);
-                throw new HttpException((int)response.StatusCode, string.Format("{0} to {1} failed", method, address));
+                throw new HttpException((int)response.StatusCode, $"{method} to {address} failed");
             }
         }
 
@@ -138,29 +127,20 @@ namespace XEL2OMS
             }
         }
 
-        private class RestResponse
+        private string GetSignature(string date, int contentLength)
         {
-            public int SentBytes { get; set; }
+            var xHeaders = $"x-ms-date:{date}";
+            var stringToHash = $"POST\n{contentLength}\napplication/json\n{xHeaders}\n/api/logs";
 
-            public string StatusDescription { get; set; }
+            var bytesToHash = Encoding.UTF8.GetBytes(stringToHash);
+            var keyBytes = Convert.FromBase64String(m_SharedKey);
 
-            public string ResponseFromServer { get; set; }
-
-            public HttpStatusCode StatusCode { get; set; }
-
-            public TimeSpan Duration { get; set; }
-
-            public override string ToString()
+            using (var sha256 = new System.Security.Cryptography.HMACSHA256(keyBytes))
             {
-                string escapedResponse = ResponseFromServer.Replace("{", "{{").Replace("}", "}}");
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Sent {0} bytes, status = {1}, status code = {2}, duration = {3}, response = '{4}'",
-                    SentBytes,
-                    StatusDescription,
-                    StatusCode,
-                    Duration,
-                    escapedResponse);
+                var calculatedHash = sha256.ComputeHash(bytesToHash);
+                var encodedHash = Convert.ToBase64String(calculatedHash);
+
+                return $"SharedKey {m_CustomerId}:{encodedHash}";
             }
         }
 
