@@ -85,7 +85,7 @@ namespace XEL2OMS
             }
         }
 
-        private static async Task<int> SendBlobToOMS(CloudPageBlob blob, int eventNumber, OMSIngestionApi oms)
+        private static async Task<int> SendBlobToOMS(CloudBlob blob, int eventNumber, OMSIngestionApi oms)
         {
             RetryPolicy retryPolicy = new RetryPolicy(RetryPolicy.DefaultFixed.ErrorDetectionStrategy, DefaultRetryCount);
 
@@ -159,10 +159,10 @@ namespace XEL2OMS
 
                     var tasks = new List<Task<int>>();
 
-                    IEnumerable<CloudPageBlob> pageBlobs = dateFolder.ListBlobs(useFlatBlobListing: true).OfType<CloudPageBlob>()
+                    IEnumerable<CloudBlob> cloudBlobs = dateFolder.ListBlobs(useFlatBlobListing: true).OfType<CloudBlob>()
                         .Where(b => b.Name.EndsWith(".xel", StringComparison.OrdinalIgnoreCase)).ToList();
 
-                    foreach (var blob in pageBlobs)
+                    foreach (var blob in cloudBlobs)
                     {
                         string blobName = new FileInfo(blob.Name).Name;
 
