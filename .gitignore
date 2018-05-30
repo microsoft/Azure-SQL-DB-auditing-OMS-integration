@@ -11,3 +11,6 @@
 /src/XEL2OMS/bin
 /src/XEL2OMS/obj
 /src/XEL2OMS/XEL2OMS.csproj.user
+/.vs/Azure-SQL-DB-auditing-OMS-integration/v15/.suo
+/.vs/VSWorkspaceState.json
+/src/XEL2OMS/.vs/XEL2OMS/v15

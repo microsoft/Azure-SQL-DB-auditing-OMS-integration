@@ -346,6 +346,9 @@ namespace XEL2OMS
         [JsonProperty]
         public string ConnectionId { get; private set; }
 
+        [JsonProperty]
+        public string DataSensitivityInformation { get; private set; }
+
         public SQLAuditLog(PublishedEvent currentEvent)
         {
             if (currentEvent.Fields["event_time"].Value == null)
@@ -387,6 +390,7 @@ namespace XEL2OMS
             ResponseRows = Convert.ToInt64(currentEvent.Fields["response_rows"].Value);
             AffectedRows = Convert.ToInt64(currentEvent.Fields["affected_rows"].Value);
             ConnectionId = Convert.ToString(currentEvent.Fields["connection_id"].Value);
+            DataSensitivityInformation = Convert.ToString(currentEvent.Fields["data_sensitivity_information"].Value);
         }
     }
 
