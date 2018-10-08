@@ -1,5 +1,9 @@
 #Azure SQL DB Auditing log integration into OMS
 
+You can now directly set OMS as your Azure SQL DB auditing logs target, eliminating the need for this sync application.
+OMS and Event Hubs have been added as built-in auditing targets alongside Blob storage. This new capability can reduce your auditing costs and is much more reliable than using the sync application.
+For further information and instructions please visit https://docs.microsoft.com/azure/sql-database/sql-database-auditing#subheading-2
+
 This is a **sync application** that runs in Azure and utilizes OMS public APIs to push SQL audit logs into OMS.
 
 It allows using OMS Log Analytics to explore and analyze your database activity, and gain insight into discrepancies and anomalies that could indicate potential business concerns or suspected security violations.  
